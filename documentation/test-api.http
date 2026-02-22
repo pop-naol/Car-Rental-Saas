@@ -1,0 +1,1209 @@
+### Health Check
+GET http://localhost:5000/health
+
+### Root Endpoint
+GET http://localhost:5000/
+
+###
+### AUTHENTICATION
+###
+
+### Register Super Admin
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@carrental.com",
+  "password": "Admin123!@#",
+  "firstName": "Super",
+  "lastName": "Admin",
+  "role": "SUPER_ADMIN"
+}
+
+### Login Super Admin
+# @name loginAdmin
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@carrental.com",
+  "password": "Admin123!@#"
+}
+
+###
+### COMPANY MANAGEMENT (Super Admin Only)
+###
+
+@token = {{loginAdmin.response.body.accessToken}}
+
+### Create Company
+# @name createCompany
+POST http://localhost:5000/api/companies
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Premium Car Rentals Inc",
+  "subscriptionTier": "premium"
+}
+
+@companyId = {{createCompany.response.body.company.id}}
+
+### Get All Companies
+GET http://localhost:5000/api/companies
+Authorization: Bearer {{token}}
+
+### Get Company by ID
+GET http://localhost:5000/api/companies/{{companyId}}
+Authorization: Bearer {{token}}
+
+### Update Company
+PATCH http://localhost:5000/api/companies/{{companyId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Premium Car Rentals International",
+  "subscriptionTier": "enterprise"
+}
+
+### Suspend Company
+PATCH http://localhost:5000/api/companies/{{companyId}}/suspend
+Authorization: Bearer {{token}}
+
+### Activate Company
+PATCH http://localhost:5000/api/companies/{{companyId}}/activate
+Authorization: Bearer {{token}}
+
+###
+### BRANCH MANAGEMENT
+###
+
+### Register Company Manager
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "manager@premium.com",
+  "password": "Manager123!@#",
+  "firstName": "John",
+  "lastName": "Manager",
+  "role": "COMPANY_MANAGER",
+  "companyId": "{{companyId}}"
+}
+
+### Login Company Manager
+# @name loginManager
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "manager@premium.com",
+  "password": "Manager123!@#"
+}
+
+@managerToken = {{loginManager.response.body.accessToken}}
+
+### Create Branch
+# @name createBranch
+POST http://localhost:5000/api/branches
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "name": "Downtown Branch",
+  "address": "123 Main St, City, State 12345",
+  "phone": "+1-555-0100",
+  "email": "downtown@premium.com"
+}
+
+@branchId = {{createBranch.response.body.branch.id}}
+
+### Get All Branches
+GET http://localhost:5000/api/branches
+Authorization: Bearer {{managerToken}}
+
+### Get Branch by ID
+GET http://localhost:5000/api/branches/{{branchId}}
+Authorization: Bearer {{managerToken}}
+
+### Update Branch
+PATCH http://localhost:5000/api/branches/{{branchId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "name": "Downtown Main Branch",
+  "phone": "+1-555-0101"
+}
+
+### Delete Branch (will fail if has active rentals)
+DELETE http://localhost:5000/api/branches/{{branchId}}
+Authorization: Bearer {{managerToken}}
+
+###
+### ERROR CASES
+###
+
+### Login with Invalid Credentials
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@carrental.com",
+  "password": "wrongpassword"
+}
+
+### Access Company Endpoint Without Auth
+GET http://localhost:5000/api/companies
+
+### Employee Trying to Access Companies (should fail)
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "employee@premium.com",
+  "password": "Employee123!@#",
+  "firstName": "Jane",
+  "lastName": "Employee",
+  "role": "EMPLOYEE",
+  "companyId": "{{companyId}}"
+}
+
+### Login Employee
+# @name loginEmployee
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "employee@premium.com",
+  "password": "Employee123!@#"
+}
+
+@employeeToken = {{loginEmployee.response.body.accessToken}}
+
+### Employee Trying to Create Company (should fail - forbidden)
+POST http://localhost:5000/api/companies
+Content-Type: application/json
+Authorization: Bearer {{employeeToken}}
+
+{
+  "name": "Unauthorized Company"
+}
+
+###
+### VEHICLE MANAGEMENT
+###
+
+### Create Vehicle
+# @name createVehicle
+POST http://localhost:5000/api/vehicles
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "branchId": "{{branchId}}",
+  "vin": "1HGBH41JXMN109186",
+  "plateNumber": "ABC-1234",
+  "brand": "Toyota",
+  "model": "Camry",
+  "year": 2024,
+  "fuelType": "Gasoline",
+  "transmission": "Automatic",
+  "dailyRate": 45.00,
+  "weeklyRate": 280.00,
+  "monthlyRate": 1000.00,
+  "currentOdometer": 5000,
+  "currentFuel": 100,
+  "purchaseCost": 28000.00
+}
+
+@vehicleId = {{createVehicle.response.body.vehicle.id}}
+
+### Get All Vehicles
+GET http://localhost:5000/api/vehicles
+Authorization: Bearer {{managerToken}}
+
+### Get Vehicles with Filters (by status)
+GET http://localhost:5000/api/vehicles?status=AVAILABLE
+Authorization: Bearer {{managerToken}}
+
+### Get Vehicles with Filters (by branch)
+GET http://localhost:5000/api/vehicles?branchId={{branchId}}
+Authorization: Bearer {{managerToken}}
+
+### Get Vehicles with Search
+GET http://localhost:5000/api/vehicles?search=Toyota
+Authorization: Bearer {{managerToken}}
+
+### Get Vehicle by ID
+GET http://localhost:5000/api/vehicles/{{vehicleId}}
+Authorization: Bearer {{managerToken}}
+
+### Update Vehicle
+PATCH http://localhost:5000/api/vehicles/{{vehicleId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "dailyRate": 50.00,
+  "weeklyRate": 300.00,
+  "currentOdometer": 5500,
+  "currentFuel": 75
+}
+
+### Update Vehicle Status
+PATCH http://localhost:5000/api/vehicles/{{vehicleId}}/status
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "status": "MAINTENANCE"
+}
+
+### Create Second Branch for Transfer Test
+# @name createBranch2
+POST http://localhost:5000/api/branches
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "name": "Airport Branch",
+  "address": "456 Airport Rd, City, State 12345",
+  "phone": "+1-555-0200",
+  "email": "airport@premium.com"
+}
+
+@branchId2 = {{createBranch2.response.body.branch.id}}
+
+### Transfer Vehicle to Another Branch
+POST http://localhost:5000/api/vehicles/{{vehicleId}}/transfer
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "toBranchId": "{{branchId2}}"
+}
+
+### Calculate Vehicle Profit
+GET http://localhost:5000/api/vehicles/{{vehicleId}}/profit?startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer {{managerToken}}
+
+### Delete Vehicle (soft delete)
+DELETE http://localhost:5000/api/vehicles/{{vehicleId}}
+Authorization: Bearer {{managerToken}}
+
+###
+### VEHICLE ERROR CASES
+###
+
+### Create Vehicle with Duplicate VIN (should fail)
+POST http://localhost:5000/api/vehicles
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "branchId": "{{branchId}}",
+  "vin": "1HGBH41JXMN109186",
+  "plateNumber": "XYZ-9999",
+  "brand": "Honda",
+  "model": "Accord",
+  "year": 2024,
+  "fuelType": "Gasoline",
+  "transmission": "Automatic",
+  "dailyRate": 40.00,
+  "weeklyRate": 250.00,
+  "monthlyRate": 900.00
+}
+
+### Create Vehicle with Invalid VIN Length (should fail)
+POST http://localhost:5000/api/vehicles
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "branchId": "{{branchId}}",
+  "vin": "SHORT",
+  "plateNumber": "DEF-5678",
+  "brand": "Ford",
+  "model": "Focus",
+  "year": 2024,
+  "fuelType": "Gasoline",
+  "transmission": "Manual",
+  "dailyRate": 35.00,
+  "weeklyRate": 220.00,
+  "monthlyRate": 800.00
+}
+
+### Update Vehicle Status with Invalid Status (should fail)
+PATCH http://localhost:5000/api/vehicles/{{vehicleId}}/status
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "status": "INVALID_STATUS"
+}
+
+### Employee Trying to Delete Vehicle (should fail - forbidden)
+DELETE http://localhost:5000/api/vehicles/{{vehicleId}}
+Authorization: Bearer {{employeeToken}}
+
+###
+### CUSTOMER MANAGEMENT
+###
+
+### Create Customer
+# @name createCustomer
+POST http://localhost:5000/api/customers
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "phone": "+1-555-1234",
+  "address": "789 Customer St, City, State 12345",
+  "licenseNumber": "DL123456789",
+  "licenseExpiry": "2026-12-31T00:00:00Z",
+  "dateOfBirth": "1990-05-15T00:00:00Z",
+  "idNumber": "ID987654321"
+}
+
+@customerId = {{createCustomer.response.body.customer.id}}
+
+### Get All Customers
+GET http://localhost:5000/api/customers
+Authorization: Bearer {{managerToken}}
+
+### Get Customers with Filters (not blacklisted)
+GET http://localhost:5000/api/customers?isBlacklisted=false
+Authorization: Bearer {{managerToken}}
+
+### Get Customers with Filters (by loyalty level)
+GET http://localhost:5000/api/customers?loyaltyLevel=STANDARD
+Authorization: Bearer {{managerToken}}
+
+### Get Customers with Search
+GET http://localhost:5000/api/customers?search=John
+Authorization: Bearer {{managerToken}}
+
+### Get Customer by ID
+GET http://localhost:5000/api/customers/{{customerId}}
+Authorization: Bearer {{managerToken}}
+
+### Update Customer
+PATCH http://localhost:5000/api/customers/{{customerId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "phone": "+1-555-5678",
+  "address": "789 New Address St, City, State 12345"
+}
+
+### Blacklist Customer
+PATCH http://localhost:5000/api/customers/{{customerId}}/blacklist
+Authorization: Bearer {{managerToken}}
+
+### Remove Customer from Blacklist
+PATCH http://localhost:5000/api/customers/{{customerId}}/remove-blacklist
+Authorization: Bearer {{managerToken}}
+
+### Update Customer Loyalty Level
+PATCH http://localhost:5000/api/customers/{{customerId}}/loyalty
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "loyaltyLevel": "GOLD"
+}
+
+### Check if Customer Can Rent
+GET http://localhost:5000/api/customers/{{customerId}}/can-rent
+Authorization: Bearer {{managerToken}}
+
+###
+### CUSTOMER ERROR CASES
+###
+
+### Create Customer with Duplicate Email (should fail)
+POST http://localhost:5000/api/customers
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "john.doe@example.com",
+  "phone": "+1-555-9999",
+  "address": "123 Test St",
+  "licenseNumber": "DL999999999",
+  "licenseExpiry": "2026-12-31T00:00:00Z",
+  "dateOfBirth": "1992-03-20T00:00:00Z"
+}
+
+### Create Customer with Expired License (should fail)
+POST http://localhost:5000/api/customers
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "firstName": "Bob",
+  "lastName": "Wilson",
+  "email": "bob.wilson@example.com",
+  "phone": "+1-555-7777",
+  "address": "456 Test Ave",
+  "licenseNumber": "DL888888888",
+  "licenseExpiry": "2020-01-01T00:00:00Z",
+  "dateOfBirth": "1985-08-10T00:00:00Z"
+}
+
+###
+### DRIVER MANAGEMENT
+###
+
+### Create Driver
+# @name createDriver
+POST http://localhost:5000/api/drivers
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "firstName": "Mike",
+  "lastName": "Driver",
+  "email": "mike.driver@premium.com",
+  "phone": "+1-555-3000",
+  "licenseNumber": "CDL123456789",
+  "licenseExpiry": "2027-06-30T00:00:00Z",
+  "dateOfBirth": "1988-11-25T00:00:00Z",
+  "address": "321 Driver Ln, City, State 12345"
+}
+
+@driverId = {{createDriver.response.body.driver.id}}
+
+### Get All Drivers
+GET http://localhost:5000/api/drivers
+Authorization: Bearer {{managerToken}}
+
+### Get Active Drivers Only
+GET http://localhost:5000/api/drivers?isActive=true
+Authorization: Bearer {{managerToken}}
+
+### Get Drivers with Search
+GET http://localhost:5000/api/drivers?search=Mike
+Authorization: Bearer {{managerToken}}
+
+### Get Driver by ID
+GET http://localhost:5000/api/drivers/{{driverId}}
+Authorization: Bearer {{managerToken}}
+
+### Update Driver
+PATCH http://localhost:5000/api/drivers/{{driverId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "phone": "+1-555-3001",
+  "address": "321 Updated Driver Ln, City, State 12345"
+}
+
+### Deactivate Driver
+PATCH http://localhost:5000/api/drivers/{{driverId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "isActive": false
+}
+
+### Activate Driver
+PATCH http://localhost:5000/api/drivers/{{driverId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "isActive": true
+}
+
+### Rate Driver (Note: requires a valid rental ID)
+POST http://localhost:5000/api/drivers/{{driverId}}/rate
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "rentalId": "00000000-0000-0000-0000-000000000000",
+  "rating": 5,
+  "onTime": true
+}
+
+### Record Driver Incident
+POST http://localhost:5000/api/drivers/{{driverId}}/incident
+Authorization: Bearer {{managerToken}}
+
+### Get Driver Performance Ranking
+GET http://localhost:5000/api/drivers/performance/ranking
+Authorization: Bearer {{managerToken}}
+
+### Check if Driver Can Drive
+GET http://localhost:5000/api/drivers/{{driverId}}/can-drive
+Authorization: Bearer {{managerToken}}
+
+###
+### DRIVER ERROR CASES
+###
+
+### Create Driver with Duplicate Email (should fail)
+POST http://localhost:5000/api/drivers
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "firstName": "Tom",
+  "lastName": "Driver",
+  "email": "mike.driver@premium.com",
+  "phone": "+1-555-4000",
+  "licenseNumber": "CDL999999999",
+  "licenseExpiry": "2027-06-30T00:00:00Z",
+  "dateOfBirth": "1990-01-15T00:00:00Z"
+}
+
+### Rate Driver with Invalid Rating (should fail)
+POST http://localhost:5000/api/drivers/{{driverId}}/rate
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "rentalId": "00000000-0000-0000-0000-000000000000",
+  "rating": 10,
+  "onTime": true
+}
+
+###
+### BOOKING MANAGEMENT
+###
+
+### Check Vehicle Availability
+POST http://localhost:5000/api/bookings/check-availability
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "vehicleId": "{{vehicleId}}",
+  "startDate": "2026-03-01T10:00:00Z",
+  "endDate": "2026-03-05T10:00:00Z"
+}
+
+### Create Booking
+# @name createBooking
+POST http://localhost:5000/api/bookings
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleId}}",
+  "branchId": "{{branchId}}",
+  "startDate": "2026-03-01T10:00:00Z",
+  "endDate": "2026-03-05T10:00:00Z",
+  "driverId": "{{driverId}}",
+  "estimatedCost": 200.00,
+  "discountCode": "SPRING2026",
+  "discountAmount": 20.00,
+  "notes": "Customer requested GPS and child seat"
+}
+
+@bookingId = {{createBooking.response.body.booking.id}}
+
+### Get All Bookings
+GET http://localhost:5000/api/bookings
+Authorization: Bearer {{managerToken}}
+
+### Get Bookings by Status
+GET http://localhost:5000/api/bookings?status=PENDING
+Authorization: Bearer {{managerToken}}
+
+### Get Bookings by Customer
+GET http://localhost:5000/api/bookings?customerId={{customerId}}
+Authorization: Bearer {{managerToken}}
+
+### Get Bookings by Vehicle
+GET http://localhost:5000/api/bookings?vehicleId={{vehicleId}}
+Authorization: Bearer {{managerToken}}
+
+### Get Bookings by Date Range
+GET http://localhost:5000/api/bookings?startDate=2026-03-01T00:00:00Z&endDate=2026-03-31T23:59:59Z
+Authorization: Bearer {{managerToken}}
+
+### Get Booking by ID
+GET http://localhost:5000/api/bookings/{{bookingId}}
+Authorization: Bearer {{managerToken}}
+
+### Update Booking
+PATCH http://localhost:5000/api/bookings/{{bookingId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "endDate": "2026-03-06T10:00:00Z",
+  "estimatedCost": 240.00,
+  "notes": "Extended by one day"
+}
+
+### Add Service to Booking
+# @name addService
+POST http://localhost:5000/api/bookings/{{bookingId}}/services
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "serviceType": "GPS",
+  "serviceName": "GPS Navigation System",
+  "price": 10.00
+}
+
+@serviceId = {{addService.response.body.service.id}}
+
+### Add Another Service
+POST http://localhost:5000/api/bookings/{{bookingId}}/services
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "serviceType": "CHILD_SEAT",
+  "serviceName": "Child Safety Seat",
+  "price": 5.00
+}
+
+### Confirm Booking
+PATCH http://localhost:5000/api/bookings/{{bookingId}}/confirm
+Authorization: Bearer {{managerToken}}
+
+### Get Overdue Bookings
+GET http://localhost:5000/api/bookings/overdue
+Authorization: Bearer {{managerToken}}
+
+### Remove Service from Booking
+DELETE http://localhost:5000/api/bookings/services/{{serviceId}}
+Authorization: Bearer {{managerToken}}
+
+### Cancel Booking
+PATCH http://localhost:5000/api/bookings/{{bookingId}}/cancel
+Authorization: Bearer {{managerToken}}
+
+###
+### BOOKING ERROR CASES
+###
+
+### Create Booking with Conflicting Dates (should fail)
+POST http://localhost:5000/api/bookings
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleId}}",
+  "branchId": "{{branchId}}",
+  "startDate": "2026-03-02T10:00:00Z",
+  "endDate": "2026-03-04T10:00:00Z",
+  "estimatedCost": 120.00
+}
+
+### Create Booking with Invalid Date Range (should fail)
+POST http://localhost:5000/api/bookings
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleId}}",
+  "branchId": "{{branchId}}",
+  "startDate": "2026-03-10T10:00:00Z",
+  "endDate": "2026-03-08T10:00:00Z",
+  "estimatedCost": 100.00
+}
+
+### Create Booking with Past Date (should fail)
+POST http://localhost:5000/api/bookings
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "customerId": "{{customerId}}",
+  "vehicleId": "{{vehicleId}}",
+  "branchId": "{{branchId}}",
+  "startDate": "2020-01-01T10:00:00Z",
+  "endDate": "2020-01-05T10:00:00Z",
+  "estimatedCost": 100.00
+}
+
+### Try to Confirm Already Confirmed Booking (should fail)
+PATCH http://localhost:5000/api/bookings/{{bookingId}}/confirm
+Authorization: Bearer {{managerToken}}
+
+### Try to Update Cancelled Booking (should fail)
+PATCH http://localhost:5000/api/bookings/{{bookingId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "notes": "This should fail"
+}
+}
+en}{{managerTokrer eation: B
+Authorizardues/oveingapi/bookst:5000/://localhos
+GET httpingdue BookOver### Get All 
+
+}}gerToken{mana: Bearer {horizationdue
+Auttals/over00/api/ren50localhost:
+GET http://entalsdue ROver## Get All 
+#rToken}}
+r {{manageon: Bearerizatie
+Authols/activntaapi/re:5000/lhostca/lo http:/entals
+GETe Rivet All Actn}}
+
+### GrTokeageman {{on: Bearerorizatid}}
+AutherIs/{{customtomercus0/api/t:500p://localhos httory
+GET Histtalen Rstomer Cu}
+
+### GeterToken}rer {{manageaion: Borizat2-31
+Auth=2026-1&endDate-01-01026Date=2it?startprofId}}/iclecles/{{veh00/api/vehihost:50://localttpysis
+GET hfit Anal Vehicle Pro## Getn}}
+
+#managerToke {{ Beareration:g
+Authorizkine/ranmancerfor/pivers/api/drlhost:5000 http://locanking
+GET Ra Performanceiver### Get Dr###
+
+TS
+SIGHICS & INALYT#
+### AN
+##:00Z"
+}
+1T00:004-0-0026: "2te"Da
+  "due: 275.00,Amount"  "total00,
+t": 25.oun"taxAm
+  50.00,nt": 2  "amoumerId}}",
+": "{{custod "customerI",
+ lId}}owRentaflwork"{{entalId": "r}",
+  Id}"{{companyyId": 
+  "compan
+{n}}
+rTokege {{manaarerzation: Beorin/json
+Authapplicationtent-Type: s
+Coce/invoiinancialpi/flhost:5000/a http://loca
+POST the rentalore invoice f### 6. CreatToken}}
+
+er {{manag Beareration:
+AuthorizT00:00:00Z26-03-20date=20/daily?l/reportsinancia000/api/focalhost:5http://levenue
+GET  generated rCheck the# 5. 
+
+##el": 80
+}
+  "endFur": 10500,"endOdomete
+{
+  
+oken}}agerTer {{man Bearorization:Authtion/json
+ica appl-Type:d
+ContentId}}/enwRentalorkflotals/{{w000/api/renocalhost:5OST http://l rental
+Pnd the. E}}
+
+### 4rental.iddy.esponse.bowRental.r{{workflo = owRentalId
+
+@workfl0
+}": 10uel
+  "startF,00eter": 100artOdomst}}",
+  "lowBookingId{{workfkingId": "
+{
+  "boo
+erToken}}{{managon: Bearer atiAuthorizion/json
+icatpl-Type: ap
+Contenttals/start5000/api/renost:alhttp://locPOST h
+flowRentalrkname worental
+# @. Start the 
+### 3
+n}}okeerT{managBearer {ization: horAutonfirm
+}}/cBookingIdworkflow/bookings/{{apihost:5000/http://localng
+PATCH oki bo Confirm the# 2.g.id}}
+
+##ody.bookin.response.bflowBooking = {{workBookingIdkflow0
+}
+
+@wort": 250.0timatedCos,
+  "es0:00:00Z"6-03-20T1202 "ndDate":"e:00Z",
+  -15T10:006-03"202ate": tD  "star
+nchId}}",bra": "{{chId "branleId}}",
+  "{{vehichicleId":
+  "ve}",{customerId}": "{stomerId"cu",
+  anyId}}{compd": "{yIcompan
+
+{
+  "n}}anagerToker {{mrezation: Beaon
+Authori/jsapplicationpe: ntent-Ty
+Copi/bookingsost:5000/a://localh
+POST httpBookinge workflowam @n booking
+#reate a new## 1. C
+#
+###
+OW TESTTE WORKFLLE## COMP
+####
+
+rToken}}nagemar {{tion: BearehorizaAut59:59Z
+-31T23:Date=2026-120Z&end-01T00:00:0Date=2026-01?startvehicle/revenue-by-portsnancial/repi/fi000/alocalhost:5
+GET http:// Vehicle byet Revenue}
+
+### GagerToken}rer {{manzation: Bea9Z
+Authori23:59:531Te=2026-12-ndDat0:00Z&eT00:02026-01-01startDate=-branch?enue-byeveports/ral/rinanci0/api/f500localhost:http://anch
+GET ue by Bren Rev Get###
+
+erToken}} {{managn: BearerorizatioId}}
+Authleic={{vehleIdvehic:59:59Z&1T232026-12-3ndDate=0:00:00Z&e-01T026-01e=20tDatoss?starfit-lports/proial/re0/api/financst:500//localhoET http:e
+Gific Vehiclpeceport for S Rofit & LossPr
+
+### Get }}agerTokener {{manzation: Bear59Z
+Authori9:1T23:512-3ndDate=2026-&e0:00:00Z-01T026-01rtDate=20tarofit-loss?sreports/pi/financial/t:5000/ap://localhosGET httposs Report
+Profit & L Get }
+
+###oken}anagerTBearer {{mrization: 
+Autho026&month=2hly?year=2ts/montancial/repor00/api/fincalhost:50//loT http: Report
+GE Get Monthly
+
+###erToken}}{managn: Bearer {tioizaZ
+Author:002-12T00:00e=2026-0y?datts/dailcial/repor0/api/finanhost:500p://localrt
+GET httepoet Daily R##
+
+### GS
+#CIAL REPORT### FINAN
+
+###
+
+}D"d": "CARntMethopayme{
+  "oken}}
+
+rTanage{{mn: Bearer rizatioAutho
+sonlication/jappent-Type: k-paid
+ConticeId}}/mares/{{invo/invoicancial/api/finlhost:5000locaATCH http:// Paid
+Pe asoic Invrk# Ma
+
+##gerToken}}{manaon: Bearer {rizatiNDING
+Authotus=PEstaces?nvoinancial/iapi/fiost:5000///localhT http:y Status
+GEs bInvoice### Get }
+
+gerToken}rer {{manazation: Bea}}
+AuthoriomerId{custd={stomerI/invoices?cufinanciali//ap00t:50alhosoctp://lomer
+GET htes by Custnvoicet I G
+###en}}
+{managerTok {Bearerization: Author
+icescial/invoi/finanhost:5000/ap//localT http:oices
+GE Get All Inv
+
+###nvoice.id}}e.body.iesponsoice.r{createInvoiceId = {
+}
+
+@inv00:00Z"3-15T00:026-0Date": "20,
+  "due220.0t": otalAmoun0,
+  "t20.0nt":   "taxAmou00,
+0. 20t":"amoun,
+  Id}}"customerrId": "{{custome",
+  "lId}}{{rentad": "rentalI}",
+  "ompanyId}d": "{{c"companyI{
+  n}}
+
+okenagerTr {{mation: Bearehorizason
+Autlication/jnt-Type: appces
+Conteinvoiial//api/financ5000calhost:T http://lonvoice
+POS createI@nameoice
+# reate Inv C
+
+###
+###VOICES - INL MANAGEMENT### FINANCIA#
+##
+
+oken}} {{managerT: BeareronAuthorizati:59:59Z
+6-02-28T23te=20200Z&endDa01T00:00:-02-2026artDate=es?stpenscial/exnan5000/api/fiocalhost:ET http://lange
+G Rby Dateenses et Exp
+
+### G}}oken{managerTr {tion: BearehorizaANCE
+AutEN=MAINTses?categoryenl/expinancia/f0/api00host:5localp://GET httory
+Categy  Expenses b# Get
+##Token}}
+erarer {{manag: BeuthorizationcleId}}
+AhiId={{vees?vehiclensexpeial/inanc000/api/flocalhost:5p://cle
+GET httehiby Ves ens# Get Exp}
+
+##en}agerTokarer {{manrization: Bethoses
+Auancial/expen/api/fint:5000alhostp://lochtET enses
+Gl ExpAl# Get 
+##"
+}
+00:00ZT00:026-02-01"2date": um",
+  "premie nsuranconthly in": "MdescriptioCE",
+  "URANy": "INS"categor00,
+   500.":mount  "a
+}}",panyId": "{{comompanyId
+  "c{rToken}}
+
+ {{manage Bearerization:orth/json
+Autionpe: applicaent-Tyontexpenses
+C/financial/5000/apicalhost:lop://e)
+POST httnc (Insura ExpenseCreate
+### Z"
+}
+4:00:006-02-11T1": "202,
+  "datel"Fuel refilption": "  "descri"FUEL",
+ory":  "categ": 75.00,
+ 
+  "amountcleId}}",ehid": "{{vicleI
+  "vehId}}",any: "{{comppanyId" "com
+
+{
+ nagerToken}}arer {{maation: Beizjson
+Authorcation/-Type: appliContentenses
+nancial/expfi0/api/calhost:500T http://lo
+POSl)Expense (Fue# Create 
+
+##0Z"
+}-10T10:00:0026-02: "2
+  "date"tion",ire rotand t change aon": "Oilpti "descri
+ ","MAINTENANCE":  "category0,
+ 50.0amount": 2}",
+  "ehicleId}"{{v": icleId "veh
+ }",ompanyId}"{{cId": "company
+
+{
+  n}}nagerToke{{maBearer ion: thorizat
+Auication/jsone: applt-Typnten
+Cosesexpeni/financial//aphost:5000alttp://locense
+POST hExptename creaance)
+# @(Maintenxpense te Eea
+
+### CrSES
+###- EXPENNT NAGEMEIAL MANCINA
+### F
+}
+
+###": 100tFuel
+  "star: 5000,"Odometerart  "std}}",
+ngIoki"{{boookingId": 
+
+{
+  "ben}}ok{managerTBearer {zation: on
+Authoriication/js: applt-Typetart
+Contenals/s/api/rent000:5/localhostT http:/)
+POSuld failBooking (shorom Pending  fal Rento Start Try t
+###
+}
+: 75""endFuel4000,
+  Odometer": 
+{
+  "endn}}
+nagerTokemaer {{earization: Bjson
+Authorplication/: apContent-Type/end
+{rentalId}}tals/{00/api/renalhost:50T http://loc
+POSl) (should faiter Lower OdomeRental withto End ### Try : 100
+}
+
+tartFuel",
+  "s": 1000metertOdo "star
+ ngId}}",ookid": "{{bbookingI}
+
+{
+  "erToken}agr {{mann: Bearehorizatio
+Autntion/jsoapplicape: 
+Content-Tytrentals/star:5000/api/calhostttp://lo)
+POST h failr (shouldalid Odomete with Inv RentalartTry to St### 
+###
+
+R CASESTAL ERRO#
+### REN}
+
+##50.00
+ageCost": 1"damer",
+  umpar b rech oninor scrats": "MgeNotedama  "": 75,
+  "endFuel
+50,eter": 54Odom
+{
+  "end}
+n}agerTokeaner {{mion: Bearthorizatn/json
+Au: applicationt-Typend
+Conte}/erentalId}i/rentals/{{/apost:5000://localh)
+POST http (with feesd RentalEnn}}
+
+### rToke {{manageon: Bearerti}
+AuthorizantalId}{{rerentals/000/api//localhost:5ET http:/l by ID
+Gt Renta Geen}}
+
+###gerTok {{manaon: Bearerthorizativerdue
+Aus/ontalrest:5000/api/ho://local httpals
+GETnt Re Overdue### GetrToken}}
+
+{{manageBearer ization: Authorctive
+s/api/rental0/ast:500//localhoGET http:als
+ive Rentt Act### Ge
+n}}
+gerTokeer {{manaarn: BeatioVE
+AuthorizTItatus=ACpi/rentals?sost:5000/alh/loca:/T https
+GEby StatuRentals 
+
+### Get }}gerTokenanaer {{mzation: Bearhorid}}
+AutleIicleId={{vehhictals?ve/api/rent:5000hoslocalT http://ehicle
+GE VRentals byet n}}
+
+### GagerTokeanarer {{mrization: BerId}}
+AuthoId={{customestomer?cutals0/api/renost:500p://localhr
+GET htt Customeentals by
+
+### Get RagerToken}}earer {{man Bzation:uthorientals
+A5000/api/ralhost:ttp://locET hntals
+Get All Re}
+
+### Gental.id}y.re.bodresponsl.RentaId = {{start
+@rental
+}
+.pdf"23ct-1ntra/coractsple.com/contge.exam//storas:: "httpl"tractUr
+  "con,": 100ltartFue
+  "ser": 5000,tartOdomet"s
+  }",ingId}{{bookngId": "{
+  "bookirToken}}
+
+nagemar {{ Beareation:
+Authorizication/jsonpplpe: antent-Tys/start
+Cotalapi/rent:5000/p://localhos httal
+POSTstartRent
+# @name ngookied Brml from Confinta### Start ReNT
+###
+
+AGEMEMAN## RENTAL 
+###
+#
+
+
+###
+### MAINTENANCE MANAGEMENT
+###
+
+### Create Maintenance Log
+# @name createMaintenance
+POST http://localhost:5000/api/maintenance
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "vehicleId": "{{vehicleId}}",
+  "type": "Oil Change",
+  "description": "Regular oil change and filter replacement",
+  "cost": 75.00,
+  "date": "2026-02-12T10:00:00Z",
+  "performedBy": "John's Auto Shop",
+  "nextMaintenanceDate": "2026-05-12T10:00:00Z",
+  "nextMaintenanceOdometer": 35000
+}
+
+@maintenanceId = {{createMaintenance.response.body.maintenanceLog.id}}
+
+### List Maintenance Logs
+GET http://localhost:5000/api/maintenance
+Authorization: Bearer {{managerToken}}
+
+### List Maintenance Logs by Vehicle
+GET http://localhost:5000/api/maintenance?vehicleId={{vehicleId}}
+Authorization: Bearer {{managerToken}}
+
+### List Maintenance Logs by Type
+GET http://localhost:5000/api/maintenance?type=Oil%20Change
+Authorization: Bearer {{managerToken}}
+
+### List Maintenance Logs by Date Range
+GET http://localhost:5000/api/maintenance?startDate=2026-01-01&endDate=2026-12-31
+Authorization: Bearer {{managerToken}}
+
+### Get Upcoming Maintenance
+GET http://localhost:5000/api/maintenance/upcoming
+Authorization: Bearer {{managerToken}}
+
+### Get Vehicle Maintenance History
+GET http://localhost:5000/api/maintenance/vehicle/{{vehicleId}}/history
+Authorization: Bearer {{managerToken}}
+
+### Get Maintenance Cost by Vehicle
+GET http://localhost:5000/api/maintenance/cost-by-vehicle?startDate=2026-01-01&endDate=2026-12-31
+Authorization: Bearer {{managerToken}}
+
+### Get Maintenance Log by ID
+GET http://localhost:5000/api/maintenance/{{maintenanceId}}
+Authorization: Bearer {{managerToken}}
+
+### Update Maintenance Log
+PATCH http://localhost:5000/api/maintenance/{{maintenanceId}}
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "type": "Oil Change",
+  "description": "Updated: Regular oil change and filter replacement with premium oil",
+  "cost": 85.00,
+  "performedBy": "Premium Auto Shop"
+}
+
+### Delete Maintenance Log
+DELETE http://localhost:5000/api/maintenance/{{maintenanceId}}
+Authorization: Bearer {{managerToken}}
+
+###
+### MAINTENANCE ERROR CASES
+###
+
+### Create Maintenance Log with Invalid Vehicle (should fail)
+POST http://localhost:5000/api/maintenance
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "vehicleId": "00000000-0000-0000-0000-000000000000",
+  "type": "Oil Change",
+  "description": "Test",
+  "cost": 75.00,
+  "date": "2026-02-12T10:00:00Z"
+}
+
+### Create Maintenance Log with Negative Cost (should fail)
+POST http://localhost:5000/api/maintenance
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "companyId": "{{companyId}}",
+  "vehicleId": "{{vehicleId}}",
+  "type": "Oil Change",
+  "description": "Test",
+  "cost": -50.00,
+  "date": "2026-02-12T10:00:00Z"
+}
+
+### Update Non-existent Maintenance Log (should fail)
+PATCH http://localhost:5000/api/maintenance/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+Authorization: Bearer {{managerToken}}
+
+{
+  "cost": 100.00
+}
+
+### Delete Non-existent Maintenance Log (should fail)
+DELETE http://localhost:5000/api/maintenance/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{managerToken}}

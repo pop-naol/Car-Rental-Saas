@@ -1,0 +1,400 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Multi-tenant companies
+model Company {
+  id                String    @id @default(uuid())
+  name              String
+  subscription_tier String    @default("basic")
+  is_active         Boolean   @default(true)
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  branches          Branch[]
+  users             User[]
+  vehicles          Vehicle[]
+  customers         Customer[]
+  drivers           Driver[]
+
+  @@map("companies")
+}
+
+// Branches for multi-location support
+model Branch {
+  id          String   @id @default(uuid())
+  company_id  String
+  name        String
+  address     String
+  phone       String
+  email       String
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  vehicles    Vehicle[]
+  employees   User[]
+
+  @@index([company_id])
+  @@map("branches")
+}
+
+
+// Users with role-based access
+model User {
+  id          String    @id @default(uuid())
+  company_id  String?
+  branch_id   String?
+  email       String    @unique
+  password    String
+  first_name  String
+  last_name   String
+  role        Role
+  is_active   Boolean   @default(true)
+  last_login  DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  company     Company?  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  branch      Branch?   @relation(fields: [branch_id], references: [id], onDelete: SetNull)
+  audit_logs  AuditLog[]
+
+  @@index([company_id])
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  COMPANY_MANAGER
+  EMPLOYEE
+  DRIVER
+  CUSTOMER
+}
+
+// Vehicles
+model Vehicle {
+  id                String        @id @default(uuid())
+  company_id        String
+  branch_id         String
+  vin               String        @unique
+  plate_number      String
+  brand             String
+  model             String
+  year              Int
+  fuel_type         String
+  transmission      String
+  status            VehicleStatus @default(AVAILABLE)
+  daily_rate        Decimal       @db.Decimal(10, 2)
+  weekly_rate       Decimal       @db.Decimal(10, 2)
+  monthly_rate      Decimal       @db.Decimal(10, 2)
+  current_odometer  Int           @default(0)
+  current_fuel      Int           @default(100)
+  purchase_cost     Decimal?      @db.Decimal(10, 2)
+  created_at        DateTime      @default(now())
+  updated_at        DateTime      @updatedAt
+  deleted_at        DateTime?
+
+  company           Company       @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  branch            Branch        @relation(fields: [branch_id], references: [id], onDelete: Restrict)
+  bookings          Booking[]
+  rentals           Rental[]
+  maintenance_logs  MaintenanceLog[]
+
+  @@index([company_id])
+  @@index([branch_id])
+  @@index([vin])
+  @@index([status])
+  @@map("vehicles")
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RESERVED
+  RENTED
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
+
+// Customers
+model Customer {
+  id                String    @id @default(uuid())
+  company_id        String
+  email             String
+  first_name        String
+  last_name         String
+  phone             String
+  address           String
+  license_number    String
+  license_expiry    DateTime
+  date_of_birth     DateTime
+  id_number         String?
+  is_blacklisted    Boolean   @default(false)
+  loyalty_level     String    @default("STANDARD")
+  risk_score        Int       @default(50)
+  total_spending    Decimal   @db.Decimal(10, 2) @default(0)
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  deleted_at        DateTime?
+
+  company           Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+  rentals           Rental[]
+
+  @@index([company_id])
+  @@index([email])
+  @@map("customers")
+}
+
+// Professional drivers
+model Driver {
+  id                  String    @id @default(uuid())
+  company_id          String
+  first_name          String
+  last_name           String
+  phone               String
+  license_number      String
+  license_expiry      DateTime
+  total_trips         Int       @default(0)
+  average_rating      Decimal   @db.Decimal(3, 2) @default(0)
+  on_time_percentage  Decimal   @db.Decimal(5, 2) @default(100)
+  incidents_count     Int       @default(0)
+  performance_score   Decimal   @db.Decimal(5, 2) @default(0)
+  is_active           Boolean   @default(true)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  deleted_at          DateTime?
+
+  company             Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  bookings            Booking[]
+  rentals             Rental[]
+
+  @@index([company_id])
+  @@map("drivers")
+}
+
+// Bookings (reservations)
+model Booking {
+  id              String        @id @default(uuid())
+  company_id      String
+  vehicle_id      String
+  customer_id     String
+  driver_id       String?
+  start_date      DateTime
+  end_date        DateTime
+  status          BookingStatus @default(PENDING)
+  estimated_cost  Decimal       @db.Decimal(10, 2)
+  discount_code   String?
+  discount_amount Decimal       @db.Decimal(10, 2) @default(0)
+  notes           String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  vehicle         Vehicle       @relation(fields: [vehicle_id], references: [id], onDelete: Restrict)
+  customer        Customer      @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  driver          Driver?       @relation(fields: [driver_id], references: [id], onDelete: SetNull)
+  services        BookingService[]
+  rental          Rental?
+
+  @@index([company_id])
+  @@index([vehicle_id])
+  @@index([start_date, end_date])
+  @@index([status])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  OVERDUE
+}
+
+
+// Active/completed rentals
+model Rental {
+  id                  String    @id @default(uuid())
+  company_id          String
+  booking_id          String    @unique
+  vehicle_id          String
+  customer_id         String
+  driver_id           String?
+  start_date          DateTime
+  end_date            DateTime
+  actual_return_date  DateTime?
+  start_odometer      Int
+  end_odometer        Int?
+  start_fuel          Int
+  end_fuel            Int?
+  base_cost           Decimal   @db.Decimal(10, 2)
+  late_fee            Decimal   @db.Decimal(10, 2) @default(0)
+  mileage_fee         Decimal   @db.Decimal(10, 2) @default(0)
+  damage_cost         Decimal   @db.Decimal(10, 2) @default(0)
+  total_cost          Decimal   @db.Decimal(10, 2)
+  status              String    @default("ACTIVE")
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  booking             Booking   @relation(fields: [booking_id], references: [id], onDelete: Restrict)
+  vehicle             Vehicle   @relation(fields: [vehicle_id], references: [id], onDelete: Restrict)
+  customer            Customer  @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  driver              Driver?   @relation(fields: [driver_id], references: [id], onDelete: SetNull)
+  invoice             Invoice?
+
+  @@index([company_id])
+  @@index([vehicle_id])
+  @@index([status])
+  @@map("rentals")
+}
+
+// Financial tracking
+model Revenue {
+  id          String    @id @default(uuid())
+  company_id  String
+  rental_id   String?
+  type        String
+  amount      Decimal   @db.Decimal(10, 2)
+  date        DateTime  @default(now())
+  description String?
+  created_at  DateTime  @default(now())
+
+  @@index([company_id])
+  @@index([date])
+  @@index([type])
+  @@map("revenues")
+}
+
+model Expense {
+  id          String    @id @default(uuid())
+  company_id  String
+  vehicle_id  String?
+  type        String
+  amount      Decimal   @db.Decimal(10, 2)
+  date        DateTime  @default(now())
+  description String?
+  created_at  DateTime  @default(now())
+
+  @@index([company_id])
+  @@index([date])
+  @@index([type])
+  @@map("expenses")
+}
+
+model Invoice {
+  id              String    @id @default(uuid())
+  company_id      String
+  rental_id       String    @unique
+  invoice_number  String    @unique
+  subtotal        Decimal   @db.Decimal(10, 2)
+  tax_amount      Decimal   @db.Decimal(10, 2)
+  total_amount    Decimal   @db.Decimal(10, 2)
+  payment_status  String    @default("PENDING")
+  payment_method  String?
+  paid_at         DateTime?
+  created_at      DateTime  @default(now())
+
+  rental          Rental    @relation(fields: [rental_id], references: [id], onDelete: Restrict)
+
+  @@index([company_id])
+  @@index([invoice_number])
+  @@map("invoices")
+}
+
+
+// Supporting entities
+model MaintenanceLog {
+  id                        String    @id @default(uuid())
+  company_id                String
+  vehicle_id                String
+  type                      String
+  description               String
+  cost                      Decimal   @db.Decimal(10, 2)
+  date                      DateTime
+  performed_by              String?
+  next_maintenance_date     DateTime?
+  next_maintenance_odometer Int?
+  created_at                DateTime  @default(now())
+
+  vehicle                   Vehicle   @relation(fields: [vehicle_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id])
+  @@index([vehicle_id])
+  @@index([next_maintenance_date])
+  @@map("maintenance_logs")
+}
+
+model Document {
+  id          String    @id @default(uuid())
+  company_id  String
+  entity_type String
+  entity_id   String
+  type        String
+  file_url    String
+  file_name   String
+  uploaded_by String
+  created_at  DateTime  @default(now())
+
+  @@index([company_id])
+  @@index([entity_type, entity_id])
+  @@map("documents")
+}
+
+model Notification {
+  id          String    @id @default(uuid())
+  company_id  String
+  user_id     String
+  type        String
+  title       String
+  message     String
+  is_read     Boolean   @default(false)
+  sent_email  Boolean   @default(false)
+  sent_sms    Boolean   @default(false)
+  created_at  DateTime  @default(now())
+
+  @@index([company_id])
+  @@index([user_id, is_read])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  company_id  String?
+  user_id     String
+  action      String
+  entity_type String
+  entity_id   String
+  old_values  Json?
+  new_values  Json?
+  ip_address  String
+  user_agent  String
+  created_at  DateTime  @default(now())
+
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([company_id])
+  @@index([user_id])
+  @@index([created_at])
+  @@map("audit_logs")
+}
+
+model BookingService {
+  id          String    @id @default(uuid())
+  booking_id  String
+  name        String
+  price       Decimal   @db.Decimal(10, 2)
+
+  booking     Booking   @relation(fields: [booking_id], references: [id], onDelete: Cascade)
+
+  @@index([booking_id])
+  @@map("booking_services")
+}
