@@ -87,3 +87,4 @@ export const strictLimiter = rateLimit({
   max: 10, // 10 requests per minute
   message: 'Too many requests, please slow down',
 })
+

@@ -54,7 +54,7 @@ router.post(
         req.user!.userId
       )
 
-      res.status(201).json({
+      return res.status(201).json({
         message: 'Expense created successfully',
         expense,
       })
@@ -70,7 +70,7 @@ router.post(
       }
 
       console.error('Create expense error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while creating expense',
@@ -98,10 +98,10 @@ router.get(
         endDate: endDate ? new Date(endDate as string) : undefined,
       })
 
-      res.json({ expenses })
+      return res.json({ expenses })
     } catch (error) {
       console.error('Get expenses error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching expenses',
@@ -139,7 +139,7 @@ router.post(
         req.user!.userId
       )
 
-      res.status(201).json({
+      return res.status(201).json({
         message: 'Invoice created successfully',
         invoice,
       })
@@ -155,7 +155,7 @@ router.post(
       }
 
       console.error('Create invoice error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while creating invoice',
@@ -180,10 +180,10 @@ router.get(
         endDate: endDate ? new Date(endDate as string) : undefined,
       })
 
-      res.json({ transactions })
+      return res.json({ transactions })
     } catch (error) {
       console.error('Get transactions error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching transactions',
@@ -209,10 +209,10 @@ router.get(
         status: status as string | undefined,
       })
 
-      res.json({ invoices })
+      return res.json({ invoices })
     } catch (error) {
       console.error('Get invoices error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching invoices',
@@ -238,7 +238,7 @@ router.patch(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Invoice marked as paid successfully',
         invoice,
       })
@@ -263,7 +263,7 @@ router.patch(
       }
 
       console.error('Mark invoice paid error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while marking invoice as paid',
@@ -294,10 +294,10 @@ router.get(
 
       const report = await FinancialService.getDailyReport(companyId, new Date(date as string))
 
-      res.json({ report })
+      return res.json({ report })
     } catch (error) {
       console.error('Get daily report error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while generating daily report',
@@ -332,10 +332,10 @@ router.get(
         parseInt(month as string)
       )
 
-      res.json({ report })
+      return res.json({ report })
     } catch (error) {
       console.error('Get monthly report error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while generating monthly report',
@@ -371,10 +371,10 @@ router.get(
         vehicleId: vehicleId as string | undefined,
       })
 
-      res.json({ report })
+      return res.json({ report })
     } catch (error) {
       console.error('Get profit & loss report error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while generating profit & loss report',
@@ -409,10 +409,10 @@ router.get(
         new Date(endDate as string)
       )
 
-      res.json({ report })
+      return res.json({ report })
     } catch (error) {
       console.error('Get revenue by branch error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while generating revenue by branch report',
@@ -447,10 +447,10 @@ router.get(
         new Date(endDate as string)
       )
 
-      res.json({ report })
+      return res.json({ report })
     } catch (error) {
       console.error('Get revenue by vehicle error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while generating revenue by vehicle report',
@@ -461,3 +461,5 @@ router.get(
 )
 
 export default router
+
+

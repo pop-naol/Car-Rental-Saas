@@ -43,7 +43,7 @@ router.post('/', requirePermission('branch:create'), async (req: Request, res: R
 
     const branch = await BranchService.createBranch(data, req.user!.userId)
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Branch created successfully',
       branch,
     })
@@ -59,7 +59,7 @@ router.post('/', requirePermission('branch:create'), async (req: Request, res: R
     }
 
     console.error('Create branch error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating branch',
@@ -75,10 +75,10 @@ router.get('/', requirePermission('branch:read'), async (req: Request, res: Resp
     const companyId = req.user!.role === 'SUPER_ADMIN' ? undefined : req.user!.companyId
 
     const branches = await BranchService.getBranches(companyId)
-    res.json({ branches })
+    return res.json({ branches })
   } catch (error) {
     console.error('Get branches error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching branches',
@@ -103,7 +103,7 @@ router.get('/:id', requirePermission('branch:read'), async (req: Request, res: R
       })
     }
 
-    res.json({ branch })
+    return res.json({ branch })
   } catch (error) {
     if (error instanceof Error && error.message === 'BRANCH_NOT_FOUND') {
       return res.status(404).json({
@@ -115,7 +115,7 @@ router.get('/:id', requirePermission('branch:read'), async (req: Request, res: R
     }
 
     console.error('Get branch error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching branch',
@@ -137,7 +137,7 @@ router.patch('/:id', requirePermission('branch:update'), async (req: Request, re
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Branch updated successfully',
       branch,
     })
@@ -162,7 +162,7 @@ router.patch('/:id', requirePermission('branch:update'), async (req: Request, re
     }
 
     console.error('Update branch error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating branch',
@@ -178,7 +178,7 @@ router.delete('/:id', requirePermission('branch:delete'), async (req: Request, r
 
     const branch = await BranchService.deleteBranch(id, req.user!.userId, req.user!.companyId!)
 
-    res.json({
+    return res.json({
       message: 'Branch deleted successfully',
       branch,
     })
@@ -222,7 +222,7 @@ router.delete('/:id', requirePermission('branch:delete'), async (req: Request, r
     }
 
     console.error('Delete branch error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting branch',
@@ -232,3 +232,4 @@ router.delete('/:id', requirePermission('branch:delete'), async (req: Request, r
 })
 
 export default router
+

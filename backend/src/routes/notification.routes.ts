@@ -14,10 +14,10 @@ router.get('/', async (req: Request, res: Response) => {
 
     const notifications = await NotificationService.getUserNotifications(userId, unreadOnly)
     const unreadCount = await NotificationService.getUnreadCount(userId)
-    res.json({ notifications, unreadCount })
+    return res.json({ notifications, unreadCount })
   } catch (error) {
     console.error('Get notifications error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching notifications',
@@ -33,7 +33,7 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
     const userId = req.user!.userId
 
     const notification = await NotificationService.markAsRead(id, userId)
-    res.json({
+    return res.json({
       message: 'Notification marked as read',
       notification,
     })
@@ -57,7 +57,7 @@ router.patch('/:id/read', async (req: Request, res: Response) => {
     }
 
     console.error('Mark notification as read error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while marking notification as read',
@@ -71,13 +71,13 @@ router.patch('/read-all', async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId
     const result = await NotificationService.markAllAsRead(userId)
-    res.json({
+    return res.json({
       message: 'All notifications marked as read',
       count: result.count,
     })
   } catch (error) {
     console.error('Mark all notifications as read error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while marking all notifications as read',
@@ -87,3 +87,5 @@ router.patch('/read-all', async (req: Request, res: Response) => {
 })
 
 export default router
+
+

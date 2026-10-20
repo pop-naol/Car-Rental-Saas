@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma'
 import { Request } from 'express'
+import { Prisma } from '@prisma/client'
 
 interface AuditLogData {
   userId: string
@@ -23,8 +24,8 @@ export class AuditService {
           action: data.action,
           entity_type: data.entityType,
           entity_id: data.entityId,
-          old_values: data.oldValues || null,
-          new_values: data.newValues || null,
+          old_values: data.oldValues ?? Prisma.JsonNull,
+          new_values: data.newValues ?? Prisma.JsonNull,
           ip_address: data.ipAddress,
           user_agent: data.userAgent,
         },

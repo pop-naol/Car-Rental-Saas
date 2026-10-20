@@ -36,7 +36,7 @@ router.post(
         req.user!.companyId!
       )
 
-      res.status(201).json({
+      return res.status(201).json({
         message: 'Rental started successfully',
         rental,
       })
@@ -81,7 +81,7 @@ router.post(
       }
 
       console.error('Start rental error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while starting rental',
@@ -107,7 +107,7 @@ router.post(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Rental ended successfully',
         rental,
       })
@@ -152,7 +152,7 @@ router.post(
       }
 
       console.error('End rental error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while ending rental',
@@ -178,10 +178,10 @@ router.get('/', requirePermission('rental:read'), async (req: Request, res: Resp
       driverId: isDriver ? req.user!.userId : undefined,
     })
 
-    res.json({ rentals })
+    return res.json({ rentals })
   } catch (error) {
     console.error('Get rentals error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching rentals',
@@ -197,10 +197,10 @@ router.get('/active', requirePermission('rental:read'), async (req: Request, res
 
     const rentals = await RentalService.getActiveRentals(companyId)
 
-    res.json({ rentals })
+    return res.json({ rentals })
   } catch (error) {
     console.error('Get active rentals error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching active rentals',
@@ -216,10 +216,10 @@ router.get('/overdue', requirePermission('rental:read'), async (req: Request, re
 
     const rentals = await RentalService.getOverdueRentals(companyId)
 
-    res.json({ rentals })
+    return res.json({ rentals })
   } catch (error) {
     console.error('Get overdue rentals error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching overdue rentals',
@@ -252,7 +252,7 @@ router.get('/:id', requirePermission('rental:read'), async (req: Request, res: R
       })
     }
 
-    res.json({ rental })
+    return res.json({ rental })
   } catch (error) {
     if (error instanceof Error && error.message === 'RENTAL_NOT_FOUND') {
       return res.status(404).json({
@@ -264,7 +264,7 @@ router.get('/:id', requirePermission('rental:read'), async (req: Request, res: R
     }
 
     console.error('Get rental error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching rental',
@@ -274,3 +274,5 @@ router.get('/:id', requirePermission('rental:read'), async (req: Request, res: R
 })
 
 export default router
+
+

@@ -26,7 +26,7 @@ router.post('/', requireRole('SUPER_ADMIN'), async (req: Request, res: Response)
     const data = createCompanySchema.parse(req.body)
     const company = await CompanyService.createCompany(data, req.user!.userId)
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Company created successfully',
       company,
     })
@@ -42,7 +42,7 @@ router.post('/', requireRole('SUPER_ADMIN'), async (req: Request, res: Response)
     }
 
     console.error('Create company error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating company',
@@ -55,10 +55,10 @@ router.post('/', requireRole('SUPER_ADMIN'), async (req: Request, res: Response)
 router.get('/', requireRole('SUPER_ADMIN'), async (_req: Request, res: Response) => {
   try {
     const companies = await CompanyService.getAllCompanies()
-    res.json({ companies })
+    return res.json({ companies })
   } catch (error) {
     console.error('Get companies error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching companies',
@@ -83,7 +83,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     const company = await CompanyService.getCompanyById(id)
-    res.json({ company })
+    return res.json({ company })
   } catch (error) {
     if (error instanceof Error && error.message === 'COMPANY_NOT_FOUND') {
       return res.status(404).json({
@@ -95,7 +95,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
 
     console.error('Get company error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching company',
@@ -112,7 +112,7 @@ router.patch('/:id', requireRole('SUPER_ADMIN'), async (req: Request, res: Respo
 
     const company = await CompanyService.updateCompany(id, data, req.user!.userId)
 
-    res.json({
+    return res.json({
       message: 'Company updated successfully',
       company,
     })
@@ -137,7 +137,7 @@ router.patch('/:id', requireRole('SUPER_ADMIN'), async (req: Request, res: Respo
     }
 
     console.error('Update company error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating company',
@@ -152,7 +152,7 @@ router.patch('/:id/suspend', requireRole('SUPER_ADMIN'), async (req: Request, re
     const { id } = req.params
     const company = await CompanyService.suspendCompany(id, req.user!.userId)
 
-    res.json({
+    return res.json({
       message: 'Company suspended successfully',
       company,
     })
@@ -167,7 +167,7 @@ router.patch('/:id/suspend', requireRole('SUPER_ADMIN'), async (req: Request, re
     }
 
     console.error('Suspend company error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while suspending company',
@@ -182,7 +182,7 @@ router.patch('/:id/activate', requireRole('SUPER_ADMIN'), async (req: Request, r
     const { id } = req.params
     const company = await CompanyService.activateCompany(id, req.user!.userId)
 
-    res.json({
+    return res.json({
       message: 'Company activated successfully',
       company,
     })
@@ -197,7 +197,7 @@ router.patch('/:id/activate', requireRole('SUPER_ADMIN'), async (req: Request, r
     }
 
     console.error('Activate company error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while activating company',
@@ -207,3 +207,4 @@ router.patch('/:id/activate', requireRole('SUPER_ADMIN'), async (req: Request, r
 })
 
 export default router
+

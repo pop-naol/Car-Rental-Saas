@@ -63,7 +63,7 @@ router.post('/', requirePermission('customer:create'), async (req: Request, res:
       req.user!.userId
     )
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Customer created successfully',
       customer,
     })
@@ -108,7 +108,7 @@ router.post('/', requirePermission('customer:create'), async (req: Request, res:
     }
 
     console.error('Create customer error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating customer',
@@ -131,10 +131,10 @@ router.get('/', requirePermission('customer:read'), async (req: Request, res: Re
       search: search as string | undefined,
     })
 
-    res.json({ customers })
+    return res.json({ customers })
   } catch (error) {
     console.error('Get customers error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching customers',
@@ -158,7 +158,7 @@ router.get('/:id', requirePermission('customer:read'), async (req: Request, res:
       })
     }
 
-    res.json({ customer })
+    return res.json({ customer })
   } catch (error) {
     if (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND') {
       return res.status(404).json({
@@ -170,7 +170,7 @@ router.get('/:id', requirePermission('customer:read'), async (req: Request, res:
     }
 
     console.error('Get customer error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching customer',
@@ -196,7 +196,7 @@ router.patch('/:id', requirePermission('customer:update'), async (req: Request, 
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Customer updated successfully',
       customer,
     })
@@ -250,7 +250,7 @@ router.patch('/:id', requirePermission('customer:update'), async (req: Request, 
     }
 
     console.error('Update customer error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating customer',
@@ -273,7 +273,7 @@ router.patch(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Customer blacklisted successfully',
         customer,
       })
@@ -288,7 +288,7 @@ router.patch(
       }
 
       console.error('Blacklist customer error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while blacklisting customer',
@@ -312,7 +312,7 @@ router.patch(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Customer removed from blacklist successfully',
         customer,
       })
@@ -327,7 +327,7 @@ router.patch(
       }
 
       console.error('Remove blacklist error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while removing blacklist',
@@ -353,7 +353,7 @@ router.patch(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Customer loyalty level updated successfully',
         customer,
       })
@@ -378,7 +378,7 @@ router.patch(
       }
 
       console.error('Update loyalty level error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while updating loyalty level',
@@ -397,10 +397,10 @@ router.get(
       const { id } = req.params
       const result = await CustomerService.canRent(id)
 
-      res.json(result)
+      return res.json(result)
     } catch (error) {
       console.error('Check can rent error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while checking rental eligibility',
@@ -416,7 +416,7 @@ router.delete('/:id', requirePermission('customer:delete'), async (req: Request,
     const { id } = req.params
     const result = await CustomerService.deleteCustomer(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND') {
       return res.status(404).json({
@@ -437,7 +437,7 @@ router.delete('/:id', requirePermission('customer:delete'), async (req: Request,
     }
 
     console.error('Delete customer error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting customer',
@@ -452,7 +452,7 @@ router.post('/:id/restore', requirePermission('customer:update'), async (req: Re
     const { id } = req.params
     const result = await CustomerService.restoreCustomer(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error && error.message === 'CUSTOMER_NOT_FOUND') {
       return res.status(404).json({
@@ -473,7 +473,7 @@ router.post('/:id/restore', requirePermission('customer:update'), async (req: Re
     }
 
     console.error('Restore customer error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while restoring customer',
@@ -483,3 +483,4 @@ router.post('/:id/restore', requirePermission('customer:update'), async (req: Re
 })
 
 export default router
+

@@ -67,7 +67,7 @@ router.post('/', requirePermission('driver:create'), async (req: Request, res: R
       req.user!.userId
     )
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Driver created successfully',
       driver,
     })
@@ -112,7 +112,7 @@ router.post('/', requirePermission('driver:create'), async (req: Request, res: R
     }
 
     console.error('Create driver error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating driver',
@@ -134,10 +134,10 @@ router.get('/', requirePermission('driver:read'), async (req: Request, res: Resp
       search: search as string | undefined,
     })
 
-    res.json({ drivers })
+    return res.json({ drivers })
   } catch (error) {
     console.error('Get drivers error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching drivers',
@@ -161,7 +161,7 @@ router.get('/:id', requirePermission('driver:read'), async (req: Request, res: R
       })
     }
 
-    res.json({ driver })
+    return res.json({ driver })
   } catch (error) {
     if (error instanceof Error && error.message === 'DRIVER_NOT_FOUND') {
       return res.status(404).json({
@@ -173,7 +173,7 @@ router.get('/:id', requirePermission('driver:read'), async (req: Request, res: R
     }
 
     console.error('Get driver error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching driver',
@@ -198,7 +198,7 @@ router.patch('/:id', requirePermission('driver:update'), async (req: Request, re
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Driver updated successfully',
       driver,
     })
@@ -252,7 +252,7 @@ router.patch('/:id', requirePermission('driver:update'), async (req: Request, re
     }
 
     console.error('Update driver error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating driver',
@@ -277,7 +277,7 @@ router.post(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Driver rated successfully',
         driver,
       })
@@ -322,7 +322,7 @@ router.post(
       }
 
       console.error('Rate driver error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while rating driver',
@@ -342,7 +342,7 @@ router.post(
 
       const driver = await DriverService.recordIncident(id, req.user!.userId, req.user!.companyId!)
 
-      res.json({
+      return res.json({
         message: 'Incident recorded successfully',
         driver,
       })
@@ -357,7 +357,7 @@ router.post(
       }
 
       console.error('Record incident error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while recording incident',
@@ -377,10 +377,10 @@ router.get(
 
       const ranking = await DriverService.getDriverPerformanceRanking(companyId)
 
-      res.json({ ranking })
+      return res.json({ ranking })
     } catch (error) {
       console.error('Get performance ranking error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching performance ranking',
@@ -399,10 +399,10 @@ router.get(
       const { id } = req.params
       const result = await DriverService.canDrive(id)
 
-      res.json(result)
+      return res.json(result)
     } catch (error) {
       console.error('Check can drive error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while checking driver eligibility',
@@ -418,7 +418,7 @@ router.delete('/:id', requirePermission('driver:delete'), async (req: Request, r
     const { id } = req.params
     const result = await DriverService.deleteDriver(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error && error.message === 'DRIVER_NOT_FOUND') {
       return res.status(404).json({
@@ -439,7 +439,7 @@ router.delete('/:id', requirePermission('driver:delete'), async (req: Request, r
     }
 
     console.error('Delete driver error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting driver',
@@ -454,7 +454,7 @@ router.post('/:id/restore', requirePermission('driver:update'), async (req: Requ
     const { id } = req.params
     const result = await DriverService.restoreDriver(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error && error.message === 'DRIVER_NOT_FOUND') {
       return res.status(404).json({
@@ -475,7 +475,7 @@ router.post('/:id/restore', requirePermission('driver:update'), async (req: Requ
     }
 
     console.error('Restore driver error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while restoring driver',
@@ -485,3 +485,5 @@ router.post('/:id/restore', requirePermission('driver:update'), async (req: Requ
 })
 
 export default router
+
+

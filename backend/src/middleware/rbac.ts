@@ -100,7 +100,7 @@ export function requirePermission(...permissions: Permission[]) {
       })
     }
 
-    next()
+    return next()
   }
 }
 
@@ -125,6 +125,7 @@ export function requireRole(...roles: string[]) {
       })
     }
 
-    next()
+    return next()
   }
 }
+

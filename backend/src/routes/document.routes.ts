@@ -42,7 +42,7 @@ router.post('/', requirePermission('document:create'), async (req: Request, res:
       req.user!.userId
     )
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Document created successfully',
       document,
     })
@@ -67,7 +67,7 @@ router.post('/', requirePermission('document:create'), async (req: Request, res:
     }
 
     console.error('Create document error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating document',
@@ -90,10 +90,10 @@ router.get('/', requirePermission('document:read'), async (req: Request, res: Re
       type: type as string | undefined,
     })
 
-    res.json({ documents })
+    return res.json({ documents })
   } catch (error) {
     console.error('Get documents error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching documents',
@@ -117,7 +117,7 @@ router.get('/:id', requirePermission('document:read'), async (req: Request, res:
       })
     }
 
-    res.json({ document })
+    return res.json({ document })
   } catch (error) {
     if (error instanceof Error && error.message === 'DOCUMENT_NOT_FOUND') {
       return res.status(404).json({
@@ -129,7 +129,7 @@ router.get('/:id', requirePermission('document:read'), async (req: Request, res:
     }
 
     console.error('Get document error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching document',
@@ -145,7 +145,7 @@ router.delete('/:id', requirePermission('document:delete'), async (req: Request,
 
     const result = await DocumentService.deleteDocument(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error && error.message === 'DOCUMENT_NOT_FOUND') {
       return res.status(404).json({
@@ -157,7 +157,7 @@ router.delete('/:id', requirePermission('document:delete'), async (req: Request,
     }
 
     console.error('Delete document error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting document',
@@ -167,13 +167,13 @@ router.delete('/:id', requirePermission('document:delete'), async (req: Request,
 })
 
 // POST /documents/generate-id - Generate unique document ID
-router.post('/generate-id', requirePermission('document:create'), async (req: Request, res: Response) => {
+router.post('/generate-id', requirePermission('document:create'), async (_req: Request, res: Response) => {
   try {
     const documentId = DocumentService.generateDocumentId()
-    res.json({ documentId })
+    return res.json({ documentId })
   } catch (error) {
     console.error('Generate document ID error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while generating document ID',
@@ -183,3 +183,4 @@ router.post('/generate-id', requirePermission('document:create'), async (req: Re
 })
 
 export default router
+

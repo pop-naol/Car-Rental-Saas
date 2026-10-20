@@ -27,7 +27,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const user = await AuthService.register(data)
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'User registered successfully',
       user,
     })
@@ -54,7 +54,7 @@ router.post('/register', async (req: Request, res: Response) => {
     }
 
     console.error('Registration error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred during registration',
@@ -80,7 +80,7 @@ router.post('/login', async (req: Request, res: Response) => {
       userAgent,
     })
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -122,7 +122,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     console.error('Login error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred during login',
@@ -132,3 +132,4 @@ router.post('/login', async (req: Request, res: Response) => {
 })
 
 export default router
+

@@ -55,7 +55,7 @@ router.post('/', requirePermission('vehicle:update'), async (req: Request, res: 
       req.user!.userId
     )
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Maintenance log created successfully',
       maintenanceLog,
     })
@@ -80,7 +80,7 @@ router.post('/', requirePermission('vehicle:update'), async (req: Request, res: 
     }
 
     console.error('Create maintenance log error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating maintenance log',
@@ -104,10 +104,10 @@ router.get('/', requirePermission('vehicle:read'), async (req: Request, res: Res
       endDate: endDate ? new Date(endDate as string) : undefined,
     })
 
-    res.json({ maintenanceLogs })
+    return res.json({ maintenanceLogs })
   } catch (error) {
     console.error('Get maintenance logs error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching maintenance logs',
@@ -126,10 +126,10 @@ router.get(
 
       const upcoming = await MaintenanceService.getUpcomingMaintenance(companyId)
 
-      res.json({ upcoming })
+      return res.json({ upcoming })
     } catch (error) {
       console.error('Get upcoming maintenance error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching upcoming maintenance',
@@ -149,10 +149,10 @@ router.get(
 
       const history = await MaintenanceService.getMaintenanceHistory(vehicleId)
 
-      res.json({ history })
+      return res.json({ history })
     } catch (error) {
       console.error('Get maintenance history error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching maintenance history',
@@ -187,10 +187,10 @@ router.get(
         new Date(endDate as string)
       )
 
-      res.json({ report })
+      return res.json({ report })
     } catch (error) {
       console.error('Get maintenance cost by vehicle error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching maintenance cost report',
@@ -215,7 +215,7 @@ router.get('/:id', requirePermission('vehicle:read'), async (req: Request, res: 
       })
     }
 
-    res.json({ maintenanceLog })
+    return res.json({ maintenanceLog })
   } catch (error) {
     if (error instanceof Error && error.message === 'MAINTENANCE_LOG_NOT_FOUND') {
       return res.status(404).json({
@@ -227,7 +227,7 @@ router.get('/:id', requirePermission('vehicle:read'), async (req: Request, res: 
     }
 
     console.error('Get maintenance log error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching maintenance log',
@@ -255,7 +255,7 @@ router.patch('/:id', requirePermission('vehicle:update'), async (req: Request, r
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Maintenance log updated successfully',
       maintenanceLog,
     })
@@ -280,7 +280,7 @@ router.patch('/:id', requirePermission('vehicle:update'), async (req: Request, r
     }
 
     console.error('Update maintenance log error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating maintenance log',
@@ -300,7 +300,7 @@ router.delete('/:id', requirePermission('vehicle:delete'), async (req: Request, 
       req.user!.companyId!
     )
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error && error.message === 'MAINTENANCE_LOG_NOT_FOUND') {
       return res.status(404).json({
@@ -312,7 +312,7 @@ router.delete('/:id', requirePermission('vehicle:delete'), async (req: Request, 
     }
 
     console.error('Delete maintenance log error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting maintenance log',
@@ -322,3 +322,5 @@ router.delete('/:id', requirePermission('vehicle:delete'), async (req: Request, 
 })
 
 export default router
+
+

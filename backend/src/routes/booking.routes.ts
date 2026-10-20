@@ -74,7 +74,7 @@ router.post(
         new Date(data.endDate)
       )
 
-      res.json(result)
+      return res.json(result)
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -87,7 +87,7 @@ router.post(
       }
 
       console.error('Check availability error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while checking availability',
@@ -131,7 +131,7 @@ router.post('/', requirePermission('booking:create'), async (req: Request, res: 
       req.user!.userId
     )
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Booking created successfully',
       booking,
     })
@@ -203,7 +203,7 @@ router.post('/', requirePermission('booking:create'), async (req: Request, res: 
     }
 
     console.error('Create booking error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating booking',
@@ -231,10 +231,10 @@ router.get('/', requirePermission('booking:read'), async (req: Request, res: Res
       endDate: endDate ? new Date(endDate as string) : undefined,
     })
 
-    res.json({ bookings })
+    return res.json({ bookings })
   } catch (error) {
     console.error('Get bookings error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching bookings',
@@ -253,10 +253,10 @@ router.get(
 
       const bookings = await BookingService.getOverdueBookings(companyId)
 
-      res.json({ bookings })
+      return res.json({ bookings })
     } catch (error) {
       console.error('Get overdue bookings error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while fetching overdue bookings',
@@ -290,7 +290,7 @@ router.get('/:id', requirePermission('booking:read'), async (req: Request, res: 
       })
     }
 
-    res.json({ booking })
+    return res.json({ booking })
   } catch (error) {
     if (error instanceof Error && error.message === 'BOOKING_NOT_FOUND') {
       return res.status(404).json({
@@ -302,7 +302,7 @@ router.get('/:id', requirePermission('booking:read'), async (req: Request, res: 
     }
 
     console.error('Get booking error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching booking',
@@ -328,7 +328,7 @@ router.patch('/:id', requirePermission('booking:update'), async (req: Request, r
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Booking updated successfully',
       booking,
     })
@@ -382,7 +382,7 @@ router.patch('/:id', requirePermission('booking:update'), async (req: Request, r
     }
 
     console.error('Update booking error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating booking',
@@ -403,7 +403,7 @@ router.post('/:id/verify-pickup', requirePermission('booking:read'), async (req:
       payload.location
     )
 
-    res.json({
+    return res.json({
       message: 'Pickup verified successfully',
       booking,
     })
@@ -437,7 +437,7 @@ router.post('/:id/verify-pickup', requirePermission('booking:read'), async (req:
     }
 
     console.error('Verify pickup error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message:
@@ -462,7 +462,7 @@ router.post('/:id/verify-dropoff', requirePermission('booking:read'), async (req
       payload.useAssignedLocation || false
     )
 
-    res.json({
+    return res.json({
       message: 'Drop-off verified successfully',
       booking,
     })
@@ -523,7 +523,7 @@ router.post('/:id/verify-dropoff', requirePermission('booking:read'), async (req
     }
 
     console.error('Verify drop-off error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message:
@@ -545,7 +545,7 @@ router.patch(
 
       const booking = await BookingService.confirmBooking(id, req.user!.userId, req.user!.companyId!)
 
-      res.json({
+      return res.json({
         message: 'Booking confirmed successfully',
         booking,
       })
@@ -580,7 +580,7 @@ router.patch(
       }
 
       console.error('Confirm booking error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while confirming booking',
@@ -600,7 +600,7 @@ router.patch(
 
       const booking = await BookingService.cancelBooking(id, req.user!.userId, req.user!.companyId!)
 
-      res.json({
+      return res.json({
         message: 'Booking cancelled successfully',
         booking,
       })
@@ -626,7 +626,7 @@ router.patch(
       }
 
       console.error('Cancel booking error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while cancelling booking',
@@ -652,7 +652,7 @@ router.post(
         req.user!.companyId!
       )
 
-      res.status(201).json({
+      return res.status(201).json({
         message: 'Service added successfully',
         service,
       })
@@ -688,7 +688,7 @@ router.post(
       }
 
       console.error('Add service error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while adding service',
@@ -712,7 +712,7 @@ router.delete(
         req.user!.companyId!
       )
 
-      res.json(result)
+      return res.json(result)
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === 'SERVICE_NOT_FOUND') {
@@ -735,7 +735,7 @@ router.delete(
       }
 
       console.error('Remove service error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while removing service',
@@ -746,3 +746,4 @@ router.delete(
 )
 
 export default router
+

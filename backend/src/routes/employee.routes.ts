@@ -45,7 +45,7 @@ router.post('/', requirePermission('employee:create'), async (req: Request, res:
 
     const employee = await EmployeeService.createEmployee(data, req.user!.userId)
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Employee created successfully',
       employee,
     })
@@ -79,7 +79,7 @@ router.post('/', requirePermission('employee:create'), async (req: Request, res:
     }
 
     console.error('Create employee error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating employee',
@@ -102,10 +102,10 @@ router.get('/', requirePermission('employee:read'), async (req: Request, res: Re
       role: role as string | undefined,
     })
 
-    res.json({ employees })
+    return res.json({ employees })
   } catch (error) {
     console.error('Get employees error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching employees',
@@ -129,7 +129,7 @@ router.get('/:id', requirePermission('employee:read'), async (req: Request, res:
       })
     }
 
-    res.json({ employee })
+    return res.json({ employee })
   } catch (error) {
     if (error instanceof Error && error.message === 'EMPLOYEE_NOT_FOUND') {
       return res.status(404).json({
@@ -141,7 +141,7 @@ router.get('/:id', requirePermission('employee:read'), async (req: Request, res:
     }
 
     console.error('Get employee error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching employee',
@@ -163,7 +163,7 @@ router.patch('/:id', requirePermission('employee:update'), async (req: Request, 
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Employee updated successfully',
       employee,
     })
@@ -197,7 +197,7 @@ router.patch('/:id', requirePermission('employee:update'), async (req: Request, 
     }
 
     console.error('Update employee error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating employee',
@@ -212,10 +212,10 @@ router.patch('/:id/activate', requirePermission('employee:update'), async (req: 
     const { id } = req.params
     const result = await EmployeeService.activateEmployee(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     console.error('Activate employee error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while activating employee',
@@ -230,10 +230,10 @@ router.patch('/:id/deactivate', requirePermission('employee:update'), async (req
     const { id } = req.params
     const result = await EmployeeService.deactivateEmployee(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     console.error('Deactivate employee error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deactivating employee',
@@ -255,7 +255,7 @@ router.post('/:id/reset-password', requirePermission('employee:update'), async (
       req.user!.companyId!
     )
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -268,7 +268,7 @@ router.post('/:id/reset-password', requirePermission('employee:update'), async (
     }
 
     console.error('Reset password error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while resetting password',
@@ -283,7 +283,7 @@ router.delete('/:id', requirePermission('employee:delete'), async (req: Request,
     const { id } = req.params
     const result = await EmployeeService.deleteEmployee(id, req.user!.userId, req.user!.companyId!)
 
-    res.json(result)
+    return res.json(result)
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'EMPLOYEE_NOT_FOUND') {
@@ -306,7 +306,7 @@ router.delete('/:id', requirePermission('employee:delete'), async (req: Request,
     }
 
     console.error('Delete employee error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting employee',
@@ -316,3 +316,5 @@ router.delete('/:id', requirePermission('employee:delete'), async (req: Request,
 })
 
 export default router
+
+

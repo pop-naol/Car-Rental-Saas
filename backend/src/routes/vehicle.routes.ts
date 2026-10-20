@@ -70,7 +70,7 @@ router.post('/', requirePermission('vehicle:create'), async (req: Request, res: 
 
     const vehicle = await VehicleService.createVehicle(data, req.user!.userId)
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Vehicle created successfully',
       vehicle,
     })
@@ -106,7 +106,7 @@ router.post('/', requirePermission('vehicle:create'), async (req: Request, res: 
     }
 
     console.error('Create vehicle error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while creating vehicle',
@@ -130,10 +130,10 @@ router.get('/', requirePermission('vehicle:read'), async (req: Request, res: Res
       search: search as string | undefined,
     })
 
-    res.json({ vehicles })
+    return res.json({ vehicles })
   } catch (error) {
     console.error('Get vehicles error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching vehicles',
@@ -158,7 +158,7 @@ router.get('/:id', requirePermission('vehicle:read'), async (req: Request, res: 
       })
     }
 
-    res.json({ vehicle })
+    return res.json({ vehicle })
   } catch (error) {
     if (error instanceof Error && error.message === 'VEHICLE_NOT_FOUND') {
       return res.status(404).json({
@@ -170,7 +170,7 @@ router.get('/:id', requirePermission('vehicle:read'), async (req: Request, res: 
     }
 
     console.error('Get vehicle error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching vehicle',
@@ -192,7 +192,7 @@ router.patch('/:id', requirePermission('vehicle:update'), async (req: Request, r
       req.user!.companyId!
     )
 
-    res.json({
+    return res.json({
       message: 'Vehicle updated successfully',
       vehicle,
     })
@@ -228,7 +228,7 @@ router.patch('/:id', requirePermission('vehicle:update'), async (req: Request, r
     }
 
     console.error('Update vehicle error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while updating vehicle',
@@ -253,7 +253,7 @@ router.patch(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Vehicle status updated successfully',
         vehicle,
       })
@@ -278,7 +278,7 @@ router.patch(
       }
 
       console.error('Update vehicle status error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while updating vehicle status',
@@ -304,7 +304,7 @@ router.post(
         req.user!.companyId!
       )
 
-      res.json({
+      return res.json({
         message: 'Vehicle transferred successfully',
         vehicle,
       })
@@ -340,7 +340,7 @@ router.post(
       }
 
       console.error('Transfer vehicle error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while transferring vehicle',
@@ -357,7 +357,7 @@ router.delete('/:id', requirePermission('vehicle:delete'), async (req: Request, 
 
     const vehicle = await VehicleService.deleteVehicle(id, req.user!.userId, req.user!.companyId!)
 
-    res.json({
+    return res.json({
       message: 'Vehicle deleted successfully',
       vehicle,
     })
@@ -383,7 +383,7 @@ router.delete('/:id', requirePermission('vehicle:delete'), async (req: Request, 
     }
 
     console.error('Delete vehicle error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while deleting vehicle',
@@ -416,10 +416,10 @@ router.get(
         new Date(endDate as string)
       )
 
-      res.json({ profit })
+      return res.json({ profit })
     } catch (error) {
       console.error('Calculate vehicle profit error:', error)
-      res.status(500).json({
+      return res.status(500).json({
         error: {
           code: 'INTERNAL_ERROR',
           message: 'An error occurred while calculating vehicle profit',
@@ -430,3 +430,5 @@ router.get(
 )
 
 export default router
+
+

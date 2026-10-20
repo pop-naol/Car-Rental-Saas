@@ -12,10 +12,10 @@ router.get('/dashboard', requirePermission('analytics:read'), async (req: Reques
   try {
     const companyId = req.user!.companyId!
     const metrics = await AnalyticsService.getDashboardMetrics(companyId)
-    res.json({ metrics })
+    return res.json({ metrics })
   } catch (error) {
     console.error('Get dashboard metrics error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching dashboard metrics',
@@ -25,13 +25,13 @@ router.get('/dashboard', requirePermission('analytics:read'), async (req: Reques
 })
 
 // GET /analytics/dashboard/global - Get global dashboard (Super Admin only)
-router.get('/dashboard/global', requirePermission('analytics:global'), async (req: Request, res: Response) => {
+router.get('/dashboard/global', requirePermission('analytics:global'), async (_req: Request, res: Response) => {
   try {
     const dashboard = await AnalyticsService.getGlobalDashboard()
-    res.json({ dashboard })
+    return res.json({ dashboard })
   } catch (error) {
     console.error('Get global dashboard error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while fetching global dashboard',
@@ -45,10 +45,10 @@ router.get('/average-rental-duration', requirePermission('analytics:read'), asyn
   try {
     const companyId = req.user!.companyId!
     const averageDuration = await AnalyticsService.getAverageRentalDuration(companyId)
-    res.json({ averageDuration })
+    return res.json({ averageDuration })
   } catch (error) {
     console.error('Get average rental duration error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while calculating average rental duration',
@@ -62,10 +62,10 @@ router.get('/revenue-growth', requirePermission('analytics:read'), async (req: R
   try {
     const companyId = req.user!.companyId!
     const growthRate = await AnalyticsService.getRevenueGrowthRate(companyId)
-    res.json({ growthRate })
+    return res.json({ growthRate })
   } catch (error) {
     console.error('Get revenue growth rate error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while calculating revenue growth rate',
@@ -89,10 +89,10 @@ router.get('/vehicle-roi/:vehicleId', requirePermission('analytics:read'), async
       })
     }
 
-    res.json({ roi })
+    return res.json({ roi })
   } catch (error) {
     console.error('Get vehicle ROI error:', error)
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'An error occurred while calculating vehicle ROI',
@@ -102,3 +102,4 @@ router.get('/vehicle-roi/:vehicleId', requirePermission('analytics:read'), async
 })
 
 export default router
+

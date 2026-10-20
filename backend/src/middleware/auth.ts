@@ -30,7 +30,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
     req.user = payload
 
     // Set tenant context for Prisma middleware
-    tenantContext.run(
+    return tenantContext.run(
       {
         companyId: payload.companyId,
         userId: payload.userId,
@@ -61,7 +61,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export function optionalAuth(req: Request, res: Response, next: NextFunction) {
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -73,7 +73,7 @@ export function optionalAuth(req: Request, res: Response, next: NextFunction) {
     const payload = verifyToken(token)
     req.user = payload
 
-    tenantContext.run(
+    return tenantContext.run(
       {
         companyId: payload.companyId,
         userId: payload.userId,
@@ -85,6 +85,7 @@ export function optionalAuth(req: Request, res: Response, next: NextFunction) {
     )
   } catch {
     // Invalid token, but continue without auth
-    next()
+    return next()
   }
 }
+
